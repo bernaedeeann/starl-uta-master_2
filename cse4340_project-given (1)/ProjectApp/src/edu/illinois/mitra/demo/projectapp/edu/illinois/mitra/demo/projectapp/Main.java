@@ -11,7 +11,6 @@ public class Main {
 
     public static void main(String[] args) {
         SimSettings.Builder settings = new SimSettings.Builder();
-
         //Testing GitHub changed!!!!!!!!!!!!!!!!!!!!!!!!
         settings.N_BOTS(4);
         //settings.N_GBOTS(1);
