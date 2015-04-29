@@ -81,13 +81,13 @@ public class ProjectApp extends LogicThread {
         obEnvironment = gvh.gps.getObspointPositions();
 
         //download from environment here so that all the robots have their own copy of visible ObstacleList
-        obsList = gvh.gps.getObspointPositions();
+        obsList = gvh.gps.getViews().elementAt(robotIndex);
 
         gvh.comms.addMsgListener(this, ARRIVED_MSG);
     }
 
     @Override
-    public List<Object> callStarL() {
+    public List<Object> callStarL(){
         int i = 0;
         while(true) {
             obEnvironment.updateObs();
@@ -125,23 +125,7 @@ public class ProjectApp extends LogicThread {
 
                             if(iamleader)
                             {
-                                //setting current destination
-                                //check for the closest destination and set current destination to that one
-                                int destSize = destinations.size();
-                                double leastDist = 0;
-                                int leastDistNum = 0;
-                                double dist;
-                                for(int c = 0; c < destSize; c++)
-                                {
-                                    ItemPosition destination = destinations.get(c).get(1);
-                                    dist = Math.sqrt(((Math.pow((double)(destination.getX()- gvh.gps.getPosition(name).getX()), 2)+ Math.pow((double)(destination.getY()- gvh.gps.getPosition(name).getY()), 2))));
-                                    if(dist < leastDist)
-                                    {
-                                        leastDist = dist;
-                                        leastDistNum = c;
-                                    }
-                                }
-                                currentDestination = destinations.get(leastDistNum).get(1);
+                                currentDestination = getRandomElement(destinations.get(i));
 
                                 RRTNode path = new RRTNode(gvh.gps.getPosition(name).x, gvh.gps.getPosition(name).y);
                                 pathStack = path.findRoute(currentDestination, 5000, obsList, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
