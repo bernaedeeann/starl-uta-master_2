@@ -24,6 +24,9 @@ public class ProjectApp extends LogicThread {
     final ArrayList<HashMap<String, ItemPosition>> destinations = new ArrayList<>();
     private int numSetsWaypoints = 4;
     int robotIndex;
+    double leastDist = 0;
+    int leastDistNum = 0;
+    double dist;
 
     // used to find path through obstacles
     Stack<ItemPosition> pathStack;
@@ -89,6 +92,7 @@ public class ProjectApp extends LogicThread {
     @Override
     public List<Object> callStarL() {
         int i = 0;
+        ItemPosition destination;
         while(true) {
             obEnvironment.updateObs();
 
@@ -128,12 +132,10 @@ public class ProjectApp extends LogicThread {
                                 //setting current destination
                                 //check for the closest destination and set current destination to that one
                                 int destSize = destinations.size();
-                                double leastDist = 0;
-                                int leastDistNum = 0;
-                                double dist;
+
                                 for(int c = 0; c < destSize; c++)
                                 {
-                                    ItemPosition destination = destinations.get(c).get(1);
+                                    destination = destinations.get(c).get(1);
                                     dist = Math.sqrt(((Math.pow((double)(destination.getX()- gvh.gps.getPosition(name).getX()), 2)+ Math.pow((double)(destination.getY()- gvh.gps.getPosition(name).getY()), 2))));
                                     if(dist < leastDist)
                                     {
@@ -257,7 +259,18 @@ public class ProjectApp extends LogicThread {
                 }
             }
             else{
-                currentDestination = getRandomElement(destinations.get(i));
+                int destSize = destinations.size();
+                for(int c = 0; c < destSize; c++)
+                {
+                    destination = destinations.get(c).get(1);
+                    dist = Math.sqrt(((Math.pow((double)(destination.getX()- gvh.gps.getPosition(name).getX()), 2)+ Math.pow((double)(destination.getY()- gvh.gps.getPosition(name).getY()), 2))));
+                    if(dist < leastDist)
+                    {
+                        leastDist = dist;
+                        leastDistNum = c;
+                    }
+                }
+                currentDestination = destinations.get(leastDistNum).get(1);
                 gvh.plat.moat.goTo(currentDestination, obsList);
             }
             sleep(100);
