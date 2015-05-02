@@ -200,9 +200,9 @@ public class ProjectApp extends LogicThread {
 								}// End of else statement.
 								ItemPosition goMidPoint = pathStack.pop();
 								// Old code.
-//								gvh.plat.moat.goTo(goMidPoint, obsList);
+								gvh.plat.moat.goTo(goMidPoint, obsList);
 								// New code.
-								gvh.plat.moat.goTo(goMidPoint, obEnvironment);
+//								gvh.plat.moat.goTo(goMidPoint, obEnvironment);
 								stage = Stage.MIDWAY;
 							}// End of if statement.
 							else{
@@ -250,9 +250,9 @@ public class ProjectApp extends LogicThread {
 			else{
 				currentDestination = getRandomElement(destinations.get(i));
 				// Old code.
-//				gvh.plat.moat.goTo(currentDestination, obsList);
+				gvh.plat.moat.goTo(currentDestination, obsList);
 				// New code.
-				gvh.plat.moat.goTo(currentDestination, obEnvironment);
+//				gvh.plat.moat.goTo(currentDestination, obEnvironment);
 			}
 			sleep(100);
 		}
