@@ -40,6 +40,10 @@ public interface SimGpsProvider {
 	
 	public abstract void addObserver(Observer o);
 
+    public abstract long getObstacleCollisions();
+
+    public abstract long getRobotCollisions();
+
 
 
 }

@@ -24,6 +24,11 @@ public class IdealSimGpsProvider extends Observable implements SimGpsProvider  {
 	private int angleNoise = 0;
 	private int posNoise = 0;
 
+    // track number of robot-robot collisions
+    private int RobotCollisions = 0;
+    // track number of robot-obstacle collisions
+    private int ObstacleCollisions = 0;
+
 	private Random rand;
 	
 	private SimulationEngine se;
@@ -284,5 +289,12 @@ public class IdealSimGpsProvider extends Observable implements SimGpsProvider  {
 		super.addObserver(o);
 	}
 
+    public long getObstacleCollisions() {
+        return this.ObstacleCollisions;
+    }
+
+    public long getRobotCollisions() {
+        return this.RobotCollisions;
+    }
 
 }

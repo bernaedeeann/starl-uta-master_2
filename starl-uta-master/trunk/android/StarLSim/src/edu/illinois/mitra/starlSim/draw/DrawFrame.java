@@ -54,4 +54,8 @@ public class DrawFrame extends JFrame
 	{
 		return dp;
 	}
+
+    public void updateCollisions(long RobotCollisions, long ObstacleCollisions) {
+        dp.updateCollisions(RobotCollisions, ObstacleCollisions);
+    }
 }

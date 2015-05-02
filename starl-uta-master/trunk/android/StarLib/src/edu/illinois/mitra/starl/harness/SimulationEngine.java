@@ -37,7 +37,7 @@ public class SimulationEngine extends Thread {
 
 	// for drawing the simulation
 	ExplicitlyDrawable drawer = null;
-	List<LogicThread> logicThreads = null;
+	public List<LogicThread> logicThreads = null;
 
 	public SimulationEngine(long timeout, int meanDelay, int delayStdDev, int dropRate, int seed, double ticRate, Set<String> blockedRobots, Map<String, String> nameToIpMap, ExplicitlyDrawable drawer, List<LogicThread> logicThreads) {
 		super("SimulationEngine");

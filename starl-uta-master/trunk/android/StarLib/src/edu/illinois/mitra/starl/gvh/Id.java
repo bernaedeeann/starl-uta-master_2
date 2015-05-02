@@ -15,10 +15,15 @@ public class Id {
 	// Identification
 	private Map<String, String> participants = null;
 	private String name = null;
+    private int idNumber;
 
 	public Id(String name, Map<String, String> participants) {
 		this.participants = participants;
 		this.name = name;
+        // this takes the int from the name and assigns it as the idNumber
+        // obviously not a great way to do this
+        String intValue = name.replaceAll("[^0-9]", "");
+        this.idNumber = Integer.parseInt(intValue);
 	}
 
 	public Set<String> getParticipants() {
@@ -32,4 +37,6 @@ public class Id {
 	public String getName() {
 		return name;
 	}
+
+    public int getIdNumber() { return idNumber; }
 }

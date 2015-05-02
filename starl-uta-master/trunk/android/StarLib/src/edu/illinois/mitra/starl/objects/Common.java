@@ -6,9 +6,14 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+import edu.illinois.mitra.starl.motion.MotionParameters;
+
 /**
  * The static Common class is used to store StarL constants used for messaging, event handling, and GUI updates. A series of useful functions
  * are included as well.
+ *
+ * Note: using static final basically makes these "like" C #define constants, although of course there is no pre-processor
+ *
  * @author Adam Zimmerman
  * @version 1.0
  */
@@ -17,6 +22,8 @@ public final class Common {
 	private static final String ERR = "Critical Error";
 	
 	// Message IDs
+    // TODO: convert this to an enum; also, if this is done, these might as well be moved to the appropriate message class
+    // TODO: also, we should load the StarL jar into Matlab for the message sending part so we can use the same message IDs instead of keeping multiple files around with the same information
 	public static final int MSG_BARRIERSYNC 			= 1;
 	public static final int MSG_MUTEX_TOKEN_OWNER_BCAST = 2;
 	public static final int MSG_MUTEX_TOKEN 			= 3;
@@ -30,7 +37,32 @@ public final class Common {
 	public static final int MSG_ACTIVITYLAUNCH			= 11;
 	public static final int MSG_ACTIVITYABORT			= 12;
 	public static final int MSG_GEOCAST					= 13;
-	
+
+    /**
+     * Options for message encodings
+     * TODO: there isn't a general settings class, this could be broken out into msg vs. motion, or renamed
+     */
+    public static enum MessageTiming {
+        MSG_ORDERING_NONE(0), // do not add extra information for message ordering
+        MSG_ORDERING_LAMPORT(1), // add Lamport clock counters (note, O(1) message overhead)
+        MSG_ORDERING_VECTOR(2), // add Vector clock counters (note, O(N) message overhead)
+        MSG_ORDERING_MATRIX(3); // add Matrix clock counters (note, O(N^2) message overhead)
+
+        private int value;
+
+        private MessageTiming(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    //public static MessageTiming MESSAGE_TIMING = MessageTiming.MSG_ORDERING_NONE;
+    public static MessageTiming MESSAGE_TIMING = MessageTiming.MSG_ORDERING_LAMPORT;
+    //public static MessageTiming MESSAGE_TIMING = MessageTiming.MSG_ORDERING_VECTOR;
+
 	// GUI Message handler
 //	public static final int MESSAGE_TOAST = 0;
 //	public static final int MESSAGE_LOCATION = 1;

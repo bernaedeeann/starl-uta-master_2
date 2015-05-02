@@ -43,6 +43,7 @@ public class SimGlobalVarHolder extends GlobalVarHolder {
 			plat.moat = new RealisticSimMotionAutomaton(this, engine.getGps());
 			plat.moat.start();
 		}
+        super.init();
 	}
 
 	@Override

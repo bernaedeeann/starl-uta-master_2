@@ -3,7 +3,11 @@ package edu.illinois.mitra.starl.comms;
 import java.util.HashMap;
 import java.util.List;
 
+import edu.illinois.mitra.starl.gvh.LamportClock;
+import edu.illinois.mitra.starl.gvh.VectorClock;
+import edu.illinois.mitra.starl.interfaces.Clock;
 import edu.illinois.mitra.starl.interfaces.Traceable;
+import edu.illinois.mitra.starl.objects.Common;
 
 /**
  * The RobotMessage class is used to pass messages between agents. All messages have a recipient, sender,
@@ -21,6 +25,9 @@ public class RobotMessage implements Traceable {
 	private String to;
 	private String from;
 	private int MID;
+    // added Clock field to RobotMessage
+    private Clock clock;
+    private String clockString;
 	MessageContents contents;
 
 	/**
@@ -51,9 +58,7 @@ public class RobotMessage implements Traceable {
 		this.MID = MID;
 		this.contents = new MessageContents(contents);
 	}
-	
-	
-	
+
 	/**
 	 * @param other A RobotMessage to clone
 	 */
@@ -62,6 +67,23 @@ public class RobotMessage implements Traceable {
 		this.from = other.getFrom();
 		this.contents = other.contents;
 		this.MID = other.getMID();
+        // get clock string from message, and instantiate new clock with that value
+        this.clockString = other.getClockString();
+
+        switch (Common.MESSAGE_TIMING) {
+            case MSG_ORDERING_LAMPORT: {
+                this.clock = new LamportClock(this.clockString);
+                break;
+            }
+            case MSG_ORDERING_VECTOR: {
+                this.clock = new VectorClock(this.clockString);
+                break;
+            }
+            default: {
+                this.clock = new Clock.NoClock();
+                break;
+            }
+        }
 	}
 	
 	/**
@@ -74,6 +96,8 @@ public class RobotMessage implements Traceable {
 		this.to = parts[3];
 		this.MID = Integer.parseInt(parts[4]);
 		this.contents = new MessageContents(parts[5]);
+        // added clock value to message
+        this.clockString = parts[6];
 	}
 	public List<String> getContentsList() {
 		return contents.getContents();
@@ -87,6 +111,8 @@ public class RobotMessage implements Traceable {
 	public int getMID() {
 		return MID;
 	}
+    // added getClock
+    public String getClockString() {return clockString; }
 	public String getContents(int location) {
 		return contents.get(location);
 	}
@@ -102,10 +128,17 @@ public class RobotMessage implements Traceable {
 	public void setContents(MessageContents new_contents) {
 		this.contents = new_contents;
 	}
+    // added set clock
+    public void setClockString(String C) {this.clockString = C;}
+    public void setClock(Clock C) {
+        this.clock = C;
+        setClockString(this.clock.getClockString());
+    }
+    public Clock getClock() {return this.clock;}
 
 	@Override
 	public String toString() {
-		return from + "|" + to + "|" + MID + "|" + contents + "|&";
+		return from + "|" + to + "|" + MID + "|" + contents + "|" + clockString + "|&";
 	}
 
 	@Override
@@ -117,6 +150,7 @@ public class RobotMessage implements Traceable {
 				+ ((contents == null) ? 0 : contents.hashCode());
 		result = prime * result + ((from == null) ? 0 : from.hashCode());
 		result = prime * result + ((to == null) ? 0 : to.hashCode());
+        result = prime * result + ((clockString == null) ? 0 : clockString.hashCode());
 		return result;
 	}
 
@@ -156,6 +190,9 @@ public class RobotMessage implements Traceable {
 		retval.put("from", from);
 		retval.put("mid", MID);
 		retval.put("contents", contents);
+        retval.put("clock", clock); // TODO: break out as another XML structure (e.g., this will just put [0;0;0] for vector, why not do e.g. <val1>0</val1> <val2>0</val2>, etc.
 		return retval;
 	}
+
+
 }

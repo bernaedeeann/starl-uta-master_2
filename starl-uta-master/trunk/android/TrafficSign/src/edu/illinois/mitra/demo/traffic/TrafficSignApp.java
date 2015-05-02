@@ -69,6 +69,11 @@ public class TrafficSignApp extends LogicThread {
 
 	@Override
 	public List<Object> callStarL() {
+
+        System.out.println("test");
+
+
+
 		while(true) {
 			if((gvh.gps.getMyPosition().type == 0) || (gvh.gps.getMyPosition().type == 1)){
 				

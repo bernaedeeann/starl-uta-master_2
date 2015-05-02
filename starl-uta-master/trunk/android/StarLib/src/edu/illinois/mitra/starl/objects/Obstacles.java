@@ -9,17 +9,22 @@ import edu.illinois.mitra.starl.motion.RRTNode;
 /**
  * The obstacle is defined here
  * Each obstacle is a polygon, the list of points should construct a closed shape
+ *
  * @author Yixiao Lin
  * @version 1.0
  */
 public class Obstacles {
 	public Vector<Point> obstacle;
+
+    /**
+     * time that the obstacle will stay in the system, in milliseconds
+     * if -1, it is a static obstacle
+     * once zero, it will be removed from the obsList
+     */
 	public long timeFrame;
-	public boolean hidden;
-	public boolean grided;
-	//time that the obstacle will stay in the system, in milliseconds
-	//if -1, it is a static obstacle
-	//once zero, it will be removed from the obsList
+
+    public boolean hidden;
+    public boolean grided;
 
 	public Obstacles(){
 		obstacle = new Vector<Point>(4, 3); 
@@ -51,6 +56,15 @@ public class Obstacles {
 		Point temp = new Point(x,y);
 		obstacle.add(temp) ;
 	}
+
+    /**
+     * return a clone so the obstacles cannot be modified
+     * TODO: check that this deep copies all the points too
+     * @return
+     */
+    public Vector<java.awt.Point> getObstacleVector() {
+        return (Vector<Point>)this.obstacle.clone();
+    }
 	
 	/**
 	 * check if line from current to destination has intersection with any part of the object
@@ -129,7 +143,6 @@ public class Obstacles {
 	 * @param destination
 	 * @return
 	 */
-	
 	public boolean validItemPos(ItemPosition destination){
 		
 			Point curpoint = obstacle.firstElement();
@@ -148,6 +161,7 @@ public class Obstacles {
 			else
 				return true;
 	}
+
 	
 	public double findMinDist(RRTNode destNode, RRTNode currentNode){
 		Point nextpoint = obstacle.firstElement();
@@ -174,7 +188,6 @@ public class Obstacles {
 			double temp2 = Math.min(dist3, dist4);
 			double minDistNow = Math.min(temp1, temp2);
 			minDist = Math.min(minDistNow, minDist);
-			
 		}
 		return minDist;
 	}
@@ -202,11 +215,10 @@ public class Obstacles {
 	    return closestPoint;
 	  }
 	  
-	  /**
-	   * gridify the map, make the obstacle map grid like. For any Grid that contains obstacle, that grid is considered an obstacle
-	   * @param a
-	   */
-
+    /**
+    * gridify the map, make the obstacle map grid like. For any Grid that contains obstacle, that grid is considered an obstacle
+    * @param a
+    */
 	public void ToGrid(int a){
 		if(grided){
 			return;
@@ -275,7 +287,7 @@ public class Obstacles {
 				obstacle.add(leftTop3);
 				break;
 			default :
-				System.out.println("not an acceptable demension of "+obstacle.size() + " to be grided");
+				System.out.println("not an acceptable dimension of " + obstacle.size() + " to be gridded.");
 			break;
 		}
 		grided = true;

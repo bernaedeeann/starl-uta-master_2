@@ -33,6 +33,7 @@ import edu.illinois.mitra.starl.objects.PositionList;
 import edu.illinois.mitra.starlSim.draw.DrawFrame;
 import edu.illinois.mitra.starlSim.draw.RobotData;
 
+
 public class Simulation {
 	private Collection<SimApp> bots = new HashSet<SimApp>();
 	private HashMap<String, String> participants = new HashMap<String, String>();
@@ -42,7 +43,6 @@ public class Simulation {
 	private ExecutorService executor;
 
 	private final SimSettings settings;
-
 	
 	private final DrawFrame drawFrame;
 	private ObstacleList list; 
@@ -58,7 +58,7 @@ public class Simulation {
 		// Create participants and instantiate SimApps
 		for(int i = 0; i < settings.N_BOTS; i++) {
 			// Mapping between robot name and IP address
-			participants.put(settings.BOT_NAME + i, "192.168.0." + i);
+			participants.put(settings.BOT_NAME + i, "192.168.0." + i); // TODO: this will break if i >= 255, can use other subnets
 		}
 
 		// Initialize viewer
@@ -134,6 +134,7 @@ public class Simulation {
 				
 				while(retries++ < 10000 && (!acceptableStart(initialPosition) || !valid))
 				{
+                    // TODO: scale the grid size or valid initial positions by N
 					initialPosition = new ItemPosition(botName, rand.nextInt(settings.GRID_XSIZE), rand.nextInt(settings.GRID_YSIZE), rand.nextInt(360));
 					if(list != null){
 						valid = (list.validstarts(initialPosition, settings.BOT_RADIUS));
@@ -176,7 +177,7 @@ public class Simulation {
 				Vector<ObstacleList> views = gps.getViews();
 				//define robot colors
 				int i = 0;
-				Color[] c = new Color[12] ;
+				Color[] c = new Color[12] ; // TODO: use a counter and not magic numbers
 				c[0] = Color.BLACK;
 				c[1] = Color.BLUE;
 				c[2] = Color.GREEN;
@@ -193,7 +194,7 @@ public class Simulation {
 				
 				// Add robots and views
 				for(ItemPosition ip : pos) {	
-					if(i<12){
+					if(i<12){ // TODO: avoid magic numbers, use mod
 						RobotData nextBot = new RobotData(ip.name, ip.x, ip.y, ip.angle, c[i], views.elementAt(i), ip.leftbump, ip.rightbump);
 						nextBot.radius = settings.BOT_RADIUS;
 						nextBot.type = ip.type;
@@ -216,6 +217,8 @@ public class Simulation {
 						rd.add(waypoint);
 					}
 				}
+                drawFrame.updateCollisions(gps.getRobotCollisions(), gps.getObstacleCollisions());
+
 				drawFrame.updateData(rd, simEngine.getTime());
 				//add obstacle update later
 			}
@@ -227,6 +230,7 @@ public class Simulation {
 		if(settings.USE_GLOBAL_LOGGER)
 			gps.addObserver(createGlobalLogger(settings));
 
+
 		// show viewer
 		drawFrame.setVisible(true);
 	}
@@ -234,14 +238,20 @@ public class Simulation {
 	private static final double BOT_SPACING_FACTOR = 2.8;
 	private Map<String, ItemPosition> startingPositions = new HashMap<String, ItemPosition>();
 
+    /**
+     * Check if initial positions are too close together
+     * @param pos
+     * @return
+     */
 	private boolean acceptableStart(ItemPosition pos) {
 		if(pos == null)
 			return false;
 		startingPositions.put(pos.getName(), pos);
 		for(Entry<String, ItemPosition> entry : startingPositions.entrySet()) {
 			if(!entry.getKey().equals(pos.getName())) {
-				if(entry.getValue().distanceTo(pos) < (BOT_SPACING_FACTOR * settings.BOT_RADIUS))
-					return false;
+				if(entry.getValue().distanceTo(pos) < (BOT_SPACING_FACTOR * settings.BOT_RADIUS)) { // TODO: sort based on distance to improve performance for large N (as this may be called thousands of times when starting simulation)
+                    return false;
+                }
 			}
 		}
 		return true;
@@ -271,6 +281,12 @@ public class Simulation {
 				// Add robots
 				for(ItemPosition ip : pos) {
 					RobotData nextBot = new RobotData(ip.name, ip.x, ip.y, ip.angle, ip.receivedTime);
+
+                    String intValue = ip.name.replaceAll("[^0-9]", ""); // TODO: let's put this as a general method somewhere since it's used so often... (Common?) and so that it handles any renaming of robots that could happen by settings changes (e.g., from "bot" to "robot", etc.)
+                    int id = Integer.parseInt(intValue);
+                    id = Math.max(0, Math.min(pos.size(), id)); // bound between array indices
+
+                    nextBot.clock = simEngine.logicThreads.get(id ).gvh.clock;
 					nextBot.radius = settings.BOT_RADIUS;
 					rd.add(nextBot);
 				}

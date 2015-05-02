@@ -3,6 +3,9 @@ package edu.illinois.mitra.starl.gvh;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import edu.illinois.mitra.starl.interfaces.Clock;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 
 import edu.illinois.mitra.starl.comms.MessageResult;
 import edu.illinois.mitra.starl.comms.RobotMessage;
@@ -10,6 +13,8 @@ import edu.illinois.mitra.starl.comms.SmartCommsHandler;
 import edu.illinois.mitra.starl.comms.UdpMessage;
 import edu.illinois.mitra.starl.interfaces.MessageListener;
 import edu.illinois.mitra.starl.interfaces.SmartComThread;
+import edu.illinois.mitra.starl.motion.MotionParameters;
+import edu.illinois.mitra.starl.objects.Common;
 
 /**
  * Handles all inter-agent communication threads. The Comms class is only
@@ -26,7 +31,9 @@ public class Comms {
 	private Map<Integer, MessageListener> listeners = Collections.synchronizedMap(new HashMap<Integer, MessageListener>());
 	private String name;
 
-	public Comms(GlobalVarHolder gvh, SmartComThread mConnectedThread) {
+
+
+    public Comms(GlobalVarHolder gvh, SmartComThread mConnectedThread) {
 		this.gvh = gvh;
 		this.name = gvh.id.getName();
 		this.mConnectedThread = mConnectedThread;
@@ -39,6 +46,23 @@ public class Comms {
 
 	public MessageResult addOutgoingMessage(RobotMessage msg, int maxRetries) {
 		if(comms != null) {
+            // Add the clock to RobotMessage
+            gvh.clock.incrementLocal();
+            msg.setClock(gvh.clock);
+            switch (Common.MESSAGE_TIMING) {
+                case MSG_ORDERING_LAMPORT:
+                case MSG_ORDERING_VECTOR:
+                case MSG_ORDERING_MATRIX: {
+                    //System.out.println(name + " is sending message with clock val " + gvh.clock.getClockString() );
+                    System.out.println(Integer.toString(gvh.id.getIdNumber()) + ":" + gvh.clock.getClockString() );
+                    break;
+                }
+                case MSG_ORDERING_NONE:
+                default: {
+                    break;
+                }
+            }
+
 			// If the message is being sent to myself, add it to the in queue
 			if(msg.getTo().equals(name)) {
 				addIncomingMessage(msg);
@@ -83,9 +107,34 @@ public class Comms {
 		listeners.remove(mid);
 	}
 
+    private void printClock(RobotMessage m, String old) {
+        switch (Common.MESSAGE_TIMING) {
+            case MSG_ORDERING_LAMPORT:
+            case MSG_ORDERING_VECTOR:
+            case MSG_ORDERING_MATRIX: {
+                System.out.println(name + "  has received message with clock " + m.getClock().getClockString() + " and new clock value is " + gvh.clock.getClockString() + " (it was " + old + ")" );
+                //System.out.println(name + " " + gvh.clock.greaterThanEqual(m.getClock())); // should be true after receive
+                //System.out.println(name + " " + m.getClock().equalTo(gvh.clock)); // should be false
+                //System.out.println(name + " " + m.getClock().greaterThan(gvh.clock)); // should be false after receive
+                //System.out.println(name + " " + gvh.clock.greaterThan(gvh.clock)); // should always be false
+                //System.out.println(name + " " + gvh.clock.greaterThan(m.getClock())); // likely false afterward (since one component equal)
+                break;
+            }
+            case MSG_ORDERING_NONE:
+            default: {
+                break;
+            }
+        }
+    }
+
 	public void addIncomingMessage(RobotMessage m) {
 		if(listeners.containsKey(m.getMID())) {
+            //printClock(m);
+            String oldClockString = gvh.clock.getClockString();
 			listeners.get(m.getMID()).messageReceived(m);
+            // update clock when message received
+            gvh.clock.handleReceive(m.getClock());
+            printClock(m, oldClockString);
 		} else {
 			gvh.log.e("Critical Error", "No handler for MID " + m.getMID());
 		}
