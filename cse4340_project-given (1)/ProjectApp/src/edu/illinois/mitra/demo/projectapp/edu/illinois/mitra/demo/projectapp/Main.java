@@ -13,7 +13,7 @@ public class Main {
 		SimSettings.Builder settings = new SimSettings.Builder();
 
 		settings.N_BOTS(4);
-//      settings.N_GBOTS(1);
+      settings.N_GBOTS(4);
 //      settings.N_DBOTS(1);
 
 //      settings.N_RBOTS(1);
