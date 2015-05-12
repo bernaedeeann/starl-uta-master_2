@@ -55,11 +55,12 @@ public class ProjectApp extends LogicThread {
 	private boolean iamleader = false;
 
 	private enum Stage {
-		PICK, GO, DONE, ELECT, HOLD, MIDWAY
+		PICK, GO, DONE, ELECT, MOVE, EXTRA, HOLD, MIDWAY
 	};
-
 	//private Stage stage = Stage.PICK;
     private Stage stage = Stage.ELECT;
+
+    private Stage prevstage = Stage.ELECT;
 
 	public ProjectApp(GlobalVarHolder gvh) {
 		super(gvh);
@@ -159,54 +160,7 @@ public class ProjectApp extends LogicThread {
 							//iamleader = true;
 
 							if(iamleader) {
-/*
-                                double leastDist = 5000;
-                                int leastDistNum = 0;
-                                index = 0;
-                                if (currentDestination == null) {
-                                    leastDistNum = 0;
-                                } else {
-                                    //leastDistNum = Integer.parseInt(currentDestination.getName().substring(1));
-                                }
-                                double dist;
-                                ItemPosition destination;
-                                int destSize = destinations.get(my_i).size();
 
-                                for (int c = 0; c < destSize; c++) {
-                                    key = Integer.toString(my_i);
-                                    key += c;
-                                    destination = destinations.get(my_i).get(key);
-                                    if (destination != null) {
-                                        dist = Math.sqrt(((Math.pow((double) (destination.getX() - gvh.gps.getPosition(name).getX()), 2) + Math.pow((double) (destination.getY() - gvh.gps.getPosition(name).getY()), 2))));
-
-                                        if (dist < leastDist) {
-                                            leastDist = dist;
-                                            leastDistNum = c;
-                                        }
-                                    }
-                                }
-                                //check if this destination is set to true in destinationRobot
-                                //get the next available destination in set
-                                key = Integer.toString(my_i);
-                                key += leastDistNum;
-                                currentDestination = destinations.get(my_i).get(key);
-                                String setNumStr = currentDestination.getName().substring(0, 1);
-                                int setNum = Integer.parseInt(setNumStr);
-                                if (destinationsRobot.get(setNum).get(currentDestination) == true)
-                                {
-                                    for(int w =0; w < destinationsRobot.get(my_i).size(); w++)
-                                    {
-                                        key = Integer.toString(my_i);
-                                        key += w;
-                                        currentDestination1 = destinations.get(my_i).get(key);
-                                        if(destinationsRobot.get(setNum).get(currentDestination1) == false)
-                                        {
-                                            currentDestination = currentDestination1;
-                                            break;
-                                        }
-                                    }
-                                }
-*/
                                 //So robots can save this because it is going to be visited
                                 key = Integer.toString(my_i);
                                 key += this.name.substring(3);
@@ -240,7 +194,9 @@ public class ProjectApp extends LogicThread {
                                 kdTree = RRTNode.stopNode;
 								//wait when can not find path
 								if(pathStack == null){
-									stage = Stage.HOLD;
+                                    stage = Stage.PICK;
+                                    //old
+									//stage = Stage.HOLD;
 								}// End of if statement.
 								else{
 									preDestination = null;
@@ -332,47 +288,118 @@ public class ProjectApp extends LogicThread {
                             kdTree = RRTNode.stopNode;
                             //wait when can not find path
                             if(pathStack == null){
-                                stage = Stage.HOLD;
+                                stage = Stage.PICK;
+                                //old
+                                //stage = Stage.HOLD;
                             }// End of if statement.
                             else{
                                 preDestination = null;
                                 stage = Stage.MIDWAY;
                             }// End of else statement.
-                            //Robots in hold the whole time
-						/*currentDestination = gvh.gps.getPosition(le.getLeader());
-						currentDestination1 = new ItemPosition(currentDestination);
-						int newx, newy;
-						if(gvh.gps.getPosition(name).getX() < currentDestination1.getX())
-						{
-							newx = gvh.gps.getPosition(name).getX() - currentDestination1.getX()/8;
-						}
-						else
-						{
-							newx = gvh.gps.getPosition(name).getX() + currentDestination1.getX()/8;
-						}
-						if(gvh.gps.getPosition(name).getY() < currentDestination1.getY())
-						{
-							newy = gvh.gps.getPosition(name).getY() - currentDestination1.getY()/8;
-						}
-						else
-						{
-							newy = gvh.gps.getPosition(name).getY() + currentDestination1.getY()/8;
-						}
-						currentDestination1.setPos(newx, newy, (currentDestination1.getAngle()));
-						currentDestination1.setPos(currentDestination);
-						gvh.plat.moat.goTo(currentDestination1, obsList);
-						//stage = Stage.HOLD;*/
 						}
 
                             key = Integer.toString(my_i);
 						}
 						break;
 
+                    case EXTRA:
+                        //get waypoint that no one is getting yet
+                        prevstage = Stage.EXTRA;
+                        String setNumStr = currentDestination.getName().substring(0,1);
+                        int setNum = Integer.parseInt(setNumStr);
+                        destinationsRobot.get(setNum).put(currentDestination, true);
+                        inform = new RobotMessage("ALL", name, VISITING_MSG, currentDestination.getName());
+                        gvh.comms.addOutgoingMessage(inform);
+                        //trying to combine robot positions with environment position
+                        robotPositions = gvh.gps.getPositions();
+                        obstaclesAll = new ObstacleList();
+                        // obstaclesAll = obEnvironment;
+                        participants = gvh.id.getParticipants();
+                        participantsSet = participants.toArray(new String[0]);
+                        for(int r = 0; r < participants.size(); r++)
+                        {
+                            if(!participantsSet[r].equals(name)) {
+                                Obstacles temp = new Obstacles(robotPositions.getPosition(participantsSet[r]).getX(), robotPositions.getPosition(participantsSet[r]).getY());
+                                obstaclesAll.addObstacle(temp);
+                            }
+                        }
+                        obstaclesAll.addObstacles(obEnvironment.ObList);
 
+                        RRTNode path = new RRTNode(gvh.gps.getPosition(name).x, gvh.gps.getPosition(name).y);
+                        // Old code.
+                        //pathStack = path.findRoute(currentDestination, 5000, obsList, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
+                        // New code.
+                        //pathStack = path.findRoute(currentDestination, 5000, obEnvironment, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
+                        pathStack = path.findRoute(currentDestination, 5000, obstaclesAll, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
+
+                        kdTree = RRTNode.stopNode;
+                        //wait when can not find path
+                        if(pathStack == null){
+                            //new
+                            stage = Stage.EXTRA;
+                            //old
+                           // stage = Stage.HOLD;
+                        }// End of if statement.
+                        else{
+                            preDestination = null;
+                            stage = Stage.MIDWAY;
+                        }
+                        break;
+                    case MOVE:
+                        //move away from waypoint
+                        prevstage = Stage.MOVE;
+                        key = Integer.toString(my_i);
+                        key += name.substring(3);
+                        currentDestination = new ItemPosition(key, currentDestination.x+600, currentDestination.y+300, 10);
+                       //currentDestination2.setPos(currentDestination1.x+100, currentDestination1.y+100, 10);
+                        //trying to combine robot positions with environment position
+                        robotPositions = gvh.gps.getPositions();
+                        obstaclesAll = new ObstacleList();
+                        // obstaclesAll = obEnvironment;
+                        participants = gvh.id.getParticipants();
+                        participantsSet = participants.toArray(new String[0]);
+                        for(int r = 0; r < participants.size(); r++)
+                        {
+                            if(!participantsSet[r].equals(name)) {
+                                Obstacles temp = new Obstacles(robotPositions.getPosition(participantsSet[r]).getX(), robotPositions.getPosition(participantsSet[r]).getY());
+                                obstaclesAll.addObstacle(temp);
+                            }
+                        }
+                        obstaclesAll.addObstacles(obEnvironment.ObList);
+
+                        path = new RRTNode(gvh.gps.getPosition(name).x, gvh.gps.getPosition(name).y);
+                        // Old code.
+                        //pathStack = path.findRoute(currentDestination, 5000, obsList, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
+                        // New code.
+                        //pathStack = path.findRoute(currentDestination, 5000, obEnvironment, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
+                        pathStack = path.findRoute(currentDestination, 5000, obstaclesAll, 5000, 3000, (gvh.gps.getPosition(name)), (int) (gvh.gps.getPosition(name).radius*0.8));
+
+                        kdTree = RRTNode.stopNode;
+                        //wait when can not find path
+                        if(pathStack == null){
+                            stage = Stage.MOVE;
+                            //old
+                            //stage = Stage.HOLD;
+                        }// End of if statement.
+                        else{
+                            preDestination = null;
+                            stage = Stage.MIDWAY;
+                        }
+                        break;
 					case MIDWAY:
 						if(!gvh.plat.moat.inMotion){
 							if(pathStack == null){
-								stage = Stage.HOLD;
+                                key = Integer.toString(my_i);
+                                key += name.substring(3);
+                                if(currentDestination.getName().contains(key)) {
+                                    stage = Stage.PICK;
+                                    if(prevstage.equals(Stage.EXTRA))
+                                    {
+                                        stage = Stage.EXTRA;
+                                    }
+                                }
+                                //old
+                                //stage = Stage.HOLD;
 								// if can not find a path, wait for obstacle map to change
 								break;
 							}// End of if statement.
@@ -381,7 +408,15 @@ public class ProjectApp extends LogicThread {
 								if(preDestination != null){
 									if((gvh.gps.getPosition(name).distanceTo(preDestination)>param.GOAL_RADIUS)){
 										pathStack.clear();
-										stage = Stage.PICK;
+                                        key = Integer.toString(my_i);
+                                        key += name.substring(3);
+                                        if(currentDestination.getName().contains(key)) {
+                                            stage = Stage.PICK;
+                                            if(prevstage.equals(Stage.EXTRA))
+                                            {
+                                                stage = Stage.EXTRA;
+                                            }
+                                        }
 										break;
 									}// End of if statement.
 									preDestination = pathStack.peek();
@@ -399,7 +434,17 @@ public class ProjectApp extends LogicThread {
 							else{
 								if((gvh.gps.getPosition(name).distanceTo(currentDestination)>param.GOAL_RADIUS)){
 									pathStack.clear();
-									stage = Stage.PICK;
+                                    //old
+									//stage = Stage.PICK;
+                                    key = Integer.toString(my_i);
+                                    key += name.substring(3);
+                                    if(currentDestination.getName().contains(key)) {
+                                        stage = Stage.PICK;
+                                        if(prevstage.equals(Stage.EXTRA))
+                                        {
+                                            stage = Stage.EXTRA;
+                                        }
+                                    }
 								}
 								else{
 									if(currentDestination != null){
@@ -439,12 +484,55 @@ public class ProjectApp extends LogicThread {
 						break;
 					case HOLD:
                         //new code
+                        double dist;
+                        double leastDist = 50;
+                        double maxDist = 700;
+                        ItemPosition destination;
+                        int destSize = destinations.get(my_i).size();
+
+                        for (int c = 0; c < destSize; c++) {
+                            key = Integer.toString(my_i);
+                            key += c;
+                            destination = destinations.get(my_i).get(key);
+                            if (destination != null) {
+                                dist = Math.sqrt(((Math.pow((double) (destination.getX() - gvh.gps.getPosition(name).getX()), 2) + Math.pow((double) (destination.getY() - gvh.gps.getPosition(name).getY()), 2))));
+
+                                if ((dist > leastDist) && (dist < maxDist)) {
+                                    //leastDist = dist;
+                                    //leastDistNum = c;
+                                    //currentDestination1 =  destinations.get(my_i).get(key);
+                                    stage = stage.MOVE;
+                                }
+                            }
+                        }
 						if(destinations.get(my_i).isEmpty()){
 							stage = Stage.PICK;
 					    }
 						else
 						{
-							gvh.plat.moat.motion_stop();
+                            if ((stage.equals(Stage.MOVE))) {
+                                stage = stage.MOVE;
+                            }
+                            else {
+                                currentDestination = getRandomElement(destinations.get(my_i));
+                                setNumStr = currentDestination.getName().substring(0, 1);
+                                setNum = Integer.parseInt(setNumStr);
+                                for (int w = 0; w < destinationsRobot.get(my_i).size(); w++) {
+                                    key = Integer.toString(my_i);
+                                    key += w;
+                                   // if(w != gvh.id.getIdNumber()) {
+                                        currentDestination1 = destinations.get(my_i).get(key);
+                                        if (currentDestination1 != null) {
+                                            if (destinationsRobot.get(setNum).get(currentDestination1) == false) {
+                                                currentDestination = currentDestination1;
+                                                stage = Stage.EXTRA;
+                                                break;
+                                            }
+                                        }
+                                    //}
+                                }
+                                gvh.plat.moat.motion_stop();
+                            }
 						}
 						break;
 
