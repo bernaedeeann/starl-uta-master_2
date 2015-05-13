@@ -82,7 +82,7 @@ public class ProjectApp extends LogicThread {
 
 		MotionParameters.Builder settings = new MotionParameters.Builder();
 		//		settings.ROBOT_RADIUS(400);
-		settings.COLAVOID_MODE(COLAVOID_MODE_TYPE.USE_COLBACK);
+		settings.COLAVOID_MODE(COLAVOID_MODE_TYPE.USE_COLAVOID);
 		MotionParameters param = settings.build();
 		gvh.plat.moat.setParameters(param);
 
