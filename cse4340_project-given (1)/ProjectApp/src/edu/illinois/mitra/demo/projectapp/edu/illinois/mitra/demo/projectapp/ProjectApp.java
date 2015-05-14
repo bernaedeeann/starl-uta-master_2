@@ -1,3 +1,7 @@
+//Bernae Tull
+//Reed Clanton
+
+
 package edu.illinois.mitra.demo.projectapp;
 
 import java.util.ArrayList;
