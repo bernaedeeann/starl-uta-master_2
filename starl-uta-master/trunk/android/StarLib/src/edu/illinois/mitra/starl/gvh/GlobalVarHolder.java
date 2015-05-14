@@ -4,8 +4,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.illinois.mitra.starl.interfaces.Clock;
 import edu.illinois.mitra.starl.interfaces.RobotEventListener;
 import edu.illinois.mitra.starl.interfaces.RobotEventListener.Event;
+import edu.illinois.mitra.starl.motion.MotionAutomaton;
+import edu.illinois.mitra.starl.motion.RobotMotion;
+import edu.illinois.mitra.starl.objects.Common;
 
 /**
  * The GlobalVarHolder encapsulates all communication, location, identification, logging, tracing, and platform specific functionality. It is the core of
@@ -22,17 +26,34 @@ public abstract class GlobalVarHolder {
 	public Logging log;
 	public Trace trace;
 	public AndroidPlatform plat;
+    public Clock clock;
+
+    protected void init() {
+        switch (Common.MESSAGE_TIMING) {
+            case MSG_ORDERING_LAMPORT: {
+                this.clock = new LamportClock();
+                break;
+            }
+            case MSG_ORDERING_VECTOR: {
+                this.clock = new VectorClock(this.id.getParticipants().size(), this.id.getIdNumber());
+                break;
+            }
+            default: {
+                this.clock = new Clock.NoClock();
+            }
+        }
+    }
 	
 	/**
 	 * @param name The unique identifier of this agent
 	 * @param participants A HashMap linking participating agent identifiers to their IP addresses
 	 */
 	public GlobalVarHolder(String name, Map<String,String> participants) {
-		id = new Id(name, participants);
+        id = new Id(name, participants);
 	}
 	
 	// Events
-	private Set<RobotEventListener> eventListeners = new HashSet<RobotEventListener>();
+	private Set<RobotEventListener> eventListeners = new HashSet<RobotEventListener>(); 
 	
 	/**
 	 * Register a RobotEventListener to receive all future system events

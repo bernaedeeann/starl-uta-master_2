@@ -31,9 +31,11 @@ public class RealGlobalVarHolder extends GlobalVarHolder {
 		super.trace = new Trace(name, "/sdcard/trace/", this);
 		super.plat = new RealAndroidPlatform(handler);
 		super.comms = new Comms(this, new SmartUdpComThread(this));
+        // TODO: remove magic numbers, no ip address should be hardcoded here, it needs to come from a config class
 		super.gps = new Gps(this, new UdpGpsReceiver(this,"192.168.1.100",4000,new PositionList(),new PositionList(), new ObstacleList(), new Vector<ObstacleList>(3,2) ));
 		plat.moat = new MotionAutomaton(this, new BluetoothInterface(this, robotMac.trim()));
 		plat.moat.start();
+        super.init();
 	}
 
 	@Override

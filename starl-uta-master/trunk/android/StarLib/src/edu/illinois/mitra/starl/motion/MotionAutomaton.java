@@ -68,11 +68,12 @@ public class MotionAutomaton extends RobotMotion {
 
 	private OPMODE mode = OPMODE.GO_TO;
 
-	private static final MotionParameters DEFAULT_PARAMETERS = MotionParameters.defaultParameters();
-	private volatile MotionParameters param = DEFAULT_PARAMETERS;
+
+
+
 	//need to pass some more parameteres into this param
 //	MotionParameters.Builder settings = new MotionParameters.Builder();
-	
+
 	
 //	private volatile MotionParameters param = settings.build();
 	
@@ -654,6 +655,10 @@ public class MotionAutomaton extends RobotMotion {
 		return param.LINSPEED_MIN;
 	}
 
+    /**
+     *
+     * @return
+     */
 	private boolean collision_mem_less(){
 		if(mypos.leftbump || mypos.rightbump){
 			double ColPoint_x, ColPoint_y;
@@ -666,8 +671,6 @@ public class MotionAutomaton extends RobotMotion {
 				ColPoint_x = mypos.radius*(Math.cos(Math.toRadians(mypos.angle+45))) + mypos.x;
 				ColPoint_y = mypos.radius*(Math.sin(Math.toRadians(mypos.angle+45))) + mypos.y;
 				blocker = new ItemPosition("detected", (int) ColPoint_x, (int) ColPoint_y, 0);
-				
-				
 			}
 			else{
 				ColPoint_x = mypos.radius*(Math.cos(Math.toRadians(mypos.angle-45))) + mypos.x;
@@ -677,18 +680,25 @@ public class MotionAutomaton extends RobotMotion {
 			
 			return true;
 		}
-		else
-			return false;
+		else {
+            return false;
+        }
 	}
-	
+
+    /**
+     * Add obstacle to list of obstacles if a collision occurs
+     *
+     * Detects an imminent collision with another robot or with any obstacles
+     *
+     * @return
+     */
 	private boolean collision() {
 		boolean toreturn = collision_mem_less();
-		if(toreturn)
-			obsList.detected(blocker);
+		if(toreturn) {
+            obsList.detected(blocker);
+        }
 		return toreturn; 
 	}
-	
-	// Detects an imminent collision with another robot or with any obstacles
 
 	@Override
 	public void setParameters(MotionParameters param) {

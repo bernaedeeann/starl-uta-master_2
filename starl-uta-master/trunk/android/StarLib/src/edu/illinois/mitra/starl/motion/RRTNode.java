@@ -6,6 +6,7 @@ import java.util.Stack;
 import edu.illinois.mitra.starl.objects.ItemPosition;
 import edu.illinois.mitra.starl.objects.ObstacleList;
 import edu.wlu.cs.levy.CG.KDTree;
+import edu.wlu.cs.levy.CG.KeySizeException;
 
 /**
  * This implements RRT path finding algorithm using kd tree
@@ -44,15 +45,28 @@ public class RRTNode {
 		parent = copy.parent;
 	}
 
-//methods to find the route
-//if find a path, return a midway point stack
-//if can not find a path, return null
-//remember to handle the null stack when writing apps using RRT path planning
-//the obstacle list will be modified to remove any obstacle that is inside a robot
-	
+    /**
+     * methods to find the route
+     *
+     * if find a path, return a midway point stack
+     * if can not find a path, return null
+     *
+     * remember to handle the null stack when writing apps using RRT path planning
+     * the obstacle list will be modified to remove any obstacle that is inside a robot
+     *
+     * @param destination
+     * @param K
+     * @param obsList
+     * @param xRange
+     * @param yRange
+     * @param RobotPos
+     * @param Radius
+     * @return
+     */
     public Stack<ItemPosition> findRoute(ItemPosition destination, int K, ObstacleList obsList, int xRange, int yRange, ItemPosition RobotPos, int Radius) {
-//initialize a kd tree;
-    	obsList.remove(RobotPos, 0.9*RobotPos.radius);
+        //initialize a kd tree;
+    	obsList.remove(RobotPos, 0.9*RobotPos.radius); // TODO: remove magic numbers / document where they come from
+
     	kd = new KDTree<RRTNode>(2);
     	double [] root = {position.x,position.y};
     	final RRTNode rootNode = new RRTNode(position.x,position.y);
@@ -65,18 +79,18 @@ public class RRTNode {
     		System.err.println(e);
     	}
     	
-    	
     	RRTNode currentNode = new RRTNode(rootNode);
     	RRTNode addedNode = new RRTNode(rootNode);
-    //for(i< k)  keep finding	
+
+        //for(i< k)  keep finding
     	for(int i = 0; i<K; i++){
-    	//if can go from current to destination, meaning path found, add destinationNode to final, stop looping.
-    		if(obsList.validPath(addedNode, destNode, 165)){
+    	    //if can go from current to destination, meaning path found, add destinationNode to final, stop looping.
+    		if(obsList.validPath(addedNode, destNode, 165)) { // TODO: explain magic number
     			
     			destNode.parent = addedNode;
     			stopNode = destNode;
-    			try{	
-    			kd.insert(destNode.getValue(), destNode);
+    			try {
+    			    kd.insert(destNode.getValue(), destNode);
     			}
         		catch (Exception e) {
         		    System.err.println(e);
@@ -90,17 +104,28 @@ public class RRTNode {
     		int xRandom = 0;
     		int yRandom = 0;
     		ItemPosition sampledPos = new ItemPosition("rand",xRandom, yRandom, 0);
-    		while(!validRandom){
+    		while(!validRandom) {
     			xRandom = (int)(Math.random() * ((xRange) + 1));
         		yRandom = (int)(Math.random() * ((yRange) + 1));
         		sampledPos.x = xRandom;
         		sampledPos.y = yRandom;
-        		validRandom = obsList.validstarts(sampledPos, Radius); 	
-    		}
+        		validRandom = obsList.validstarts(sampledPos, Radius);
+                // added a check to see if sampledPos is already in tree
+                boolean notInTree = true;
+                RRTNode possibleNode = new RRTNode(sampledPos.x, sampledPos.y);
+                try {
+                    if(kd.search(possibleNode.getValue()) != null) {
+                        notInTree = false;
+                    }
+                } catch (KeySizeException e) {
+                    e.printStackTrace();
+                }
+                validRandom = (validRandom && notInTree);
+            }
     		RRTNode sampledNode = new RRTNode(sampledPos.x, sampledPos.y);
     		// with a valid random sampled point, we find it's nearest neighbor in the tree, set it as current Node
     		try{
-    		currentNode = kd.nearest(sampledNode.getValue());
+    		    currentNode = kd.nearest(sampledNode.getValue());
     		}
     		catch (Exception e) {
     		    System.err.println(e);
@@ -108,17 +133,16 @@ public class RRTNode {
     		sampledNode = toggle(currentNode, sampledNode, obsList, Radius);
     		//check if toggle failed
     		//if not failed, insert the new node to the tree
-    		if(sampledNode != null){
+    		if(sampledNode != null) {
     			sampledNode.parent = currentNode;
-    			try{
+    			try {
     	    		kd.insert(sampledNode.getValue(), sampledNode);
-    	    		}
-    	    		catch (Exception e) {
-    	    		    System.err.println(e);
-    	    		}
+    	    	}
+    	    	catch (Exception e) {
+                    System.err.println(e);
+    	        }
     			//set currentNode as newest node added, so we can check if we can reach the destination
     			addedNode = sampledNode;
-    			//
     		}
     	}
     	stopNode = addedNode;
@@ -127,48 +151,54 @@ public class RRTNode {
 
       	RRTNode curNode = destNode;  	
 		Stack<ItemPosition> pathStack= new Stack<ItemPosition>();
-		while(curNode != null){
+		while(curNode != null) {
 			ItemPosition ToGo= new ItemPosition("midpoint", curNode.position.x, curNode.position.y, 0);
 			pathStack.push(ToGo);
 			curNode = curNode.parent;
 		}
     	
-    	if(destNode.parent == null){
+    	if(destNode.parent == null) {
     		System.out.println("Path Not found!");
     		return(null);
     	}
-    	else{
+    	else {
     		stopNode = destNode;
     		return pathStack;
-    
     	}
     }
 
+    /**
+     * toggle function deals with constrains by the environment as well as robot systems.
+     * It changes sampledNode to some point alone the line of sampledNode and currentNode so that no obstacles are in the middle
+     * In other words, it changes sampledNode to somewhere alone the line where robot can reach
+     *
+     * TODO: we can add robot system constraints later
+     *
+     * @param currentNode
+     * @param sampledNode
+     * @param obsList
+     * @param radius
+     * @return
+     */
 	private RRTNode toggle(RRTNode currentNode, RRTNode sampledNode, ObstacleList obsList, int radius) {
-		// toggle function deals with constrains by the environment as well as robot systems. 
-		// It changes sampledNode to some point alone the line of sampledNode and currentNode so that no obstacles are in the middle
-		// In other words, it changes sampledNode to somewhere alone the line where robot can reach
-		
-		// we can add robot system constraints later
-		
 		RRTNode toggleNode = new RRTNode(sampledNode);
 		int tries = 0;
 		// try 20 times, which will shorten it to 0.00317 times the original path length
 		// smaller tries might make integer casting loop forever
-		while((!obsList.validPath(toggleNode, currentNode, radius)) && (tries < 20))
-		{
+		while((!obsList.validPath(toggleNode, currentNode, radius)) && (tries < 20)) {
 			//move 1/4 toward current
 			toggleNode.position.x = (int) ((toggleNode.position.x + currentNode.position.x)/(1.5));
 			toggleNode.position.y = (int) ((toggleNode.position.y + currentNode.position.y)/(1.5));
 			tries ++;
 		}
 		//return currentNode if toggle failed
-		if(tries >= 19)
-			return null;
-		else
-			return toggleNode;
+        // TODO: remove magic number
+		if(tries >= 19) {
+            return null;
+        }
+		else {
+            return toggleNode;
+        }
 	}
-
-	
 }
 

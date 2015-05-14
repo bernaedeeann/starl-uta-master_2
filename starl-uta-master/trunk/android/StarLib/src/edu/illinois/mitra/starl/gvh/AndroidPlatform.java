@@ -11,7 +11,7 @@ import edu.illinois.mitra.starl.motion.RobotMotion;
  */
 public class AndroidPlatform {
 	
-	public RobotMotion moat;
+	public RobotMotion moat; // TODO: I don't see why this is here versus being directly in GlobalVarHolder.
 		
     public void setDebugInfo(String debugInfo) {
 	}

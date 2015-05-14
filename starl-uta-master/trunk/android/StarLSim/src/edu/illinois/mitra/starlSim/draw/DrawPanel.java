@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -40,6 +41,9 @@ public class DrawPanel extends ZoomablePanel
 	
 	private LinkedList <Drawer> preDrawers = new LinkedList <Drawer>();
 	private LinkedList <AcceptsPointInput> clickListeners = new LinkedList <AcceptsPointInput>();
+
+    private long collisionRobots = 0;
+    private long collisionObstacles = 0;
 	
 	// wireless interface
 	RoundRectangle2D.Double toggle = new RoundRectangle2D.Double(5,5,20,20,15,15);
@@ -148,12 +152,12 @@ public class DrawPanel extends ZoomablePanel
 			int[] xs = new int[currobs.obstacle.size()]; 
 			int[] ys = new int[currobs.obstacle.size()]; ;
 			
-			for(int j = 0; j < currobs.obstacle.size() -1 ; j++){
-			curpoint = currobs.obstacle.get(j);
-			nextpoint = currobs.obstacle.get(j+1);
-			g.drawLine(curpoint.x, curpoint.y, nextpoint.x, nextpoint.y);
-			xs[j] = curpoint.x;
-			ys[j] = curpoint.y;
+			for (int j = 0; j < currobs.obstacle.size() -1 ; j++) {
+                curpoint = currobs.obstacle.get(j);
+                nextpoint = currobs.obstacle.get(j+1);
+                g.drawLine(curpoint.x, curpoint.y, nextpoint.x, nextpoint.y);
+                xs[j] = curpoint.x;
+                ys[j] = curpoint.y;
 			}
 			xs[currobs.obstacle.size()-1] = nextpoint.x;
 			ys[currobs.obstacle.size()-1] = nextpoint.y;
@@ -209,9 +213,19 @@ public class DrawPanel extends ZoomablePanel
 		
 		if (startTime == Long.MAX_VALUE) // first time we called postDraw
 			startTime = System.currentTimeMillis();
-		
-		g.drawString((time-startTime)/1000 + " kTic   kTic/Sec:" + format.format(((time-startTime)/1000.0)/((lastUpdateTime-startTime)/1000.0)), 5, getSize().height-5);
-		
+
+        long kTic = (this.time-startTime)/1000;
+        double kTicUpdate = ((lastUpdateTime-startTime)/1000.0);
+
+		g.drawString(kTic + " kTic   kTic/Sec:" + format.format(kTic/kTicUpdate), 5, getSize().height-5);
+
+        //kTic + " kTic   kTic/Sec:" + format.format(kTic/kTicUpdate)
+        g.drawString("Total Time: " + format.format((this.time - startTime)/1000.0) , 30, getSize().height-25);
+        //format.format((this.time - startTime)/1000.0)
+
+        g.drawString("Collision Time (s) (Robot-Robot): " + format.format(this.collisionRobots / 1000.0), 30, getSize().height-45);
+        g.drawString("Collision Time (s) (Robot-Obstacle): " + format.format(this.collisionObstacles / 1000.0), 30, getSize().height-65);
+
 		g.drawString("SCALE: " + scaleFactor, getSize().width - 125, getSize().height-15);
 		g.drawLine(getSize().width - 140, getSize().height-10, getSize().width-40, getSize().height-10);
 		
@@ -379,6 +393,13 @@ public class DrawPanel extends ZoomablePanel
 		
 		repaint();
 	}
+
+    public void updateCollisions(long RobotCollisions, long ObstacleCollisions) {
+        synchronized (this) {
+            this.collisionRobots = RobotCollisions;
+            this.collisionObstacles = ObstacleCollisions;
+        }
+    }
 	
 	public void setWorld(int width, int height) {
 		synchronized(this)

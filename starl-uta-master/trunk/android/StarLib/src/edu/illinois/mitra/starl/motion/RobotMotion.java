@@ -12,7 +12,9 @@ import edu.illinois.mitra.starl.objects.ObstacleList;
 public abstract class RobotMotion extends Thread implements Cancellable {
 	
 	public boolean inMotion = false;
-	
+    private static final MotionParameters DEFAULT_PARAMETERS = MotionParameters.defaultParameters();
+    protected volatile MotionParameters param = DEFAULT_PARAMETERS;
+
 	public RobotMotion() {}
 	
 	public RobotMotion(String name) {
@@ -50,4 +52,11 @@ public abstract class RobotMotion extends Thread implements Cancellable {
 	public abstract void setParameters(MotionParameters param);
 
 
+    /**
+     * gettor
+     * @return
+     */
+    public MotionParameters getParameters() {
+        return this.param;
+    }
 }

@@ -16,7 +16,7 @@ import edu.illinois.mitra.starl.gvh.GlobalVarHolder;
  */
 public abstract class StarLCallable implements Callable<List<Object>> {
 	
-	protected GlobalVarHolder gvh;
+	public GlobalVarHolder gvh;
 	protected Object[] results;
 	private String threadname;
 	protected String name;

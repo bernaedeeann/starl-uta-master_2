@@ -130,7 +130,6 @@ public class MotionParameters {
 	public int COLLISION_AVOID_STRAIGHTTIME = 1250;
 	public int COLLISION_AVOID_BACKTIME = 300;
 	public int COLLISION_AVOID_TURNTIME = 5000;
-	
 
 	public static class Builder {
 		private int TURNSPEED_MAX = 110;
@@ -154,13 +153,11 @@ public class MotionParameters {
 		private int COLLISION_AVOID_STRAIGHTTIME = 1250;
 		private int COLLISION_AVOID_BACKTIME = 800;
 		private int COLLISION_AVOID_TURNTIME = 500;
-		
-		
 
-		public Builder TURNSPEED_MAX(int TURNSPEED_MAX) {
-			this.TURNSPEED_MAX = TURNSPEED_MAX;
-			return this;
-		}
+        public Builder TURNSPEED_MAX(int TURNSPEED_MAX) {
+            this.TURNSPEED_MAX = TURNSPEED_MAX;
+            return this;
+        }
 
 		public Builder TURNSPEED_MIN(int TURNSPEED_MIN) {
 			this.TURNSPEED_MIN = TURNSPEED_MIN;
@@ -289,6 +286,5 @@ public class MotionParameters {
 		this.COLLISION_AVOID_STRAIGHTTIME = builder.COLLISION_AVOID_STRAIGHTTIME;
 		this.COLLISION_AVOID_BACKTIME = builder.COLLISION_AVOID_BACKTIME;
 		this.COLLISION_AVOID_TURNTIME = builder.COLLISION_AVOID_TURNTIME;
-		
 	}
 }

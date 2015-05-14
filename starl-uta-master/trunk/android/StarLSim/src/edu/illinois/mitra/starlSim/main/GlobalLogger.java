@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import edu.illinois.mitra.starl.interfaces.Clock;
+
 import edu.illinois.mitra.starlSim.draw.RobotData;
 
 /**
@@ -47,7 +49,7 @@ public class GlobalLogger {
 		try {
 			fileWriter.write(Long.toString(time) + "\n");
 			for(RobotData d : data) {
-				fileWriter.write(d.name + "," + d.x + "," + d.y + "," + d.degrees + "," + d.time + "\n");
+				fileWriter.write(d.name + "," + d.clock.getClockString() + "," + d.x + "," + d.y + "," + d.degrees + "," + d.time + "\n");
 			}
 			fileWriter.write("\n\n");
 			fileWriter.flush();
@@ -57,4 +59,5 @@ public class GlobalLogger {
 			// Catch the NPE
 		}
 	}
+
 }

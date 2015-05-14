@@ -21,9 +21,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="StarLSim" />
-    <orderEntry type="module" module-name="LightPaintLibrary" />
-    <orderEntry type="module" module-name="StarLib" />
   </component>
 </module>
 

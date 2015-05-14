@@ -17,6 +17,10 @@ public class Main {
 		settings.DRAW_WAYPOINTS(false);
 		settings.DRAW_WAYPOINT_NAMES(false);
 		settings.DRAWER(new TrafficSignDrawer());
+
+        settings.TRACE_OUT_DIR("");
+        settings.USE_GLOBAL_LOGGER(true);
+
 //		settings.MSG_LOSSES_PER_HUNDRED(20);
 //		settings.GPS_POSITION_NOISE(-5);
 //		settings.GPS_ANGLE_NOISE(1);

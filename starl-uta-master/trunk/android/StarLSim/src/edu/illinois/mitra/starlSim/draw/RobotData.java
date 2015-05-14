@@ -2,6 +2,8 @@ package edu.illinois.mitra.starlSim.draw;
 
 import java.awt.Color;
 
+import edu.illinois.mitra.starl.interfaces.Clock;
+
 import edu.illinois.mitra.starl.objects.ObstacleList;
 
 public class RobotData
@@ -19,6 +21,9 @@ public class RobotData
 	public int type;
 	public boolean leftbump;
 	public boolean rightbump;
+
+    // state values
+    public Clock clock;
 	
 	public RobotData(String name, int x, int y, double degrees)
 	{

@@ -14,7 +14,11 @@ public class SimSettings {
 	//mark a rectangle when hit an unknown obstacle, length of rectangle = De_Radadius * Detect_Precision
 	// may change to mark a circle later on
 	public final int De_Radius;
-	
+
+    /**
+       * Number of sets of waypoints
+    */
+    //public final int N_SETS_WAYPOINTS;
 	/**
 	 * The number of robots to simulate.
 	 */
@@ -53,12 +57,14 @@ public class SimSettings {
 	/**
 	 * Filename for a .wpt file with waypoints.
 	 */
-	public final String WAYPOINT_FILE;	/**
+	public final String WAYPOINT_FILE;
 
+    /**
 	 * Filename for a .wpt file with SensePoints.
 	 */
-	public final String SENSEPOINT_FILE;	/**
+	public final String SENSEPOINT_FILE;
 
+    /**
 	 * Filename for a .wpt file with Obstacles.
 	 */
 	public final String OBSPOINT_FILE;
@@ -85,6 +91,7 @@ public class SimSettings {
 	 * Simulated world width.
 	 */
 	public final int GRID_XSIZE;
+
 	/**
 	 * Simulated world height.
 	 */
@@ -94,10 +101,12 @@ public class SimSettings {
 	 * Milliseconds. The time between simulated GPS position broadcasts.
 	 */
 	public final long GPS_PERIOD;
+
 	/**
 	 * Degrees. The maximum angular noise of simulated GPS positions.
 	 */
 	public final double GPS_ANGLE_NOISE;
+
 	/**
 	 * Millimeters. The maximum position X and Y offset of simulated GPS
 	 * positions.
@@ -108,6 +117,7 @@ public class SimSettings {
 	 * Milliseconds. The maximum trace clock drift.
 	 */
 	public final int TRACE_CLOCK_DRIFT_MAX;
+
 	/**
 	 * The maximum trace clock skew.
 	 */
@@ -117,14 +127,17 @@ public class SimSettings {
 	 * Milliseconds. The average message transit time.
 	 */
 	public final int MSG_MEAN_DELAY;
+
 	/**
 	 * Milliseconds. The standard deviation of message transmission times.
 	 */
 	public final int MSG_STDDEV_DELAY;
+
 	/**
 	 * Number of messages to drop per hundred messages sent.
 	 */
 	public final int MSG_LOSSES_PER_HUNDRED;
+
 	/**
 	 * Seed for random number generator used by the communication channel.
 	 */
@@ -134,6 +147,7 @@ public class SimSettings {
 	 * Robot name prefix
 	 */
 	public final String BOT_NAME;
+
 	/**
 	 * Millimeters. The radius of simulated robots.
 	 */
@@ -143,10 +157,12 @@ public class SimSettings {
 	 * Trace output directory.
 	 */
 	public final String TRACE_OUT_DIR;
+
 	/**
 	 * enable 3D visualizer
 	 */
 	public final boolean THREE_D;
+
 	/**
 	 * Enable/disable the global logger.
 	 */
@@ -156,6 +172,7 @@ public class SimSettings {
 	 * Enable/disable trace drawing
 	 */
 	public final boolean DRAW_TRACE;
+
 	/**
 	 * The trace length for each robot.
 	 */
@@ -189,7 +206,6 @@ public class SimSettings {
 	 */
 	public final boolean DRAW_WAYPOINT_NAMES;
 
-
 	private static final SimSettings defaultInstance = new Builder().build();
 
 	public static SimSettings defaultSettings() {
@@ -200,6 +216,7 @@ public class SimSettings {
 		private int De_Radius = 1;
 		private int Detect_Precision = 1;
 		private int N_BOTS = 4;
+        //private int N_SETS_WAYPOINTS = 1;
 		private int N_GBOTS = 4;
 		private int N_DBOTS = 0;
 		private int N_RBOTS = 0;
@@ -236,7 +253,6 @@ public class SimSettings {
 		private boolean DRAW_OBSPOINTS = true;
 		private boolean DRAW_WAYPOINT_NAMES = true;
 
-
 		public Builder De_Radius(int length) {
 			this.De_Radius = length;
 			return this;
@@ -246,7 +262,12 @@ public class SimSettings {
 			this.Detect_Precision = sqsize;
 			return this;
 		}
-		
+
+        /*public Builder N_SETS_WAYPOINTS(int N_SETS_WAYPOINTS) {
+            this.N_SETS_WAYPOINTS = N_SETS_WAYPOINTS;
+            return this;
+        }*/
+
 		public Builder N_BOTS(int N_BOTS) {
 			this.N_BOTS = N_BOTS;
 			return this;
@@ -428,6 +449,7 @@ public class SimSettings {
 	private SimSettings(Builder builder) {
 		this.De_Radius = builder.De_Radius;
 		this.Detect_Precision = builder.Detect_Precision;
+       // this.N_SETS_WAYPOINTS = builder.N_SETS_WAYPOINTS;
 		this.N_BOTS = builder.N_BOTS;
 		this.N_GBOTS = builder.N_GBOTS;
 		this.N_DBOTS = builder.N_DBOTS;
@@ -463,7 +485,5 @@ public class SimSettings {
 		this.DRAW_WAYPOINTS = builder.DRAW_WAYPOINTS;
 		this.DRAW_OBSPOINTS = builder.DRAW_OBSPOINTS;
 		this.DRAW_WAYPOINT_NAMES = builder.DRAW_WAYPOINT_NAMES;
-		
-		
 	}
 }

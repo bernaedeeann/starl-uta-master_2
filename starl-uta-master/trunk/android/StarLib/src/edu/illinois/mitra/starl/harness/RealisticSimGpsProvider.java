@@ -39,6 +39,11 @@ public class RealisticSimGpsProvider extends Observable implements SimGpsProvide
 	private double posNoise = 0;
 	private int robotRadius = 0;
 
+    // track number of robot-robot collisions
+    private int RobotCollisions = 0;
+    // track number of robot-obstacle collisions
+    private int ObstacleCollisions = 0;
+
 	private Random rand;
 	
 	private SimulationEngine se;
@@ -231,10 +236,13 @@ public class RealisticSimGpsProvider extends Observable implements SimGpsProvide
 	public void addObserver(Observer o) {
 		super.addObserver(o);
 	}
-	
+
 	public void checkCollision(ItemPosition bot) {
 		bot.leftbump= false;
 		bot.rightbump= false;
+
+        boolean alreadyCounted = false;
+
 		for(ItemPosition current : robot_positions.getList()) {
 			if(!current.name.equals(bot.name)) {
 				if(bot.isFacing(current) && bot.distanceTo(current) <= (bot.radius + current.radius)) {
@@ -246,10 +254,14 @@ public class RealisticSimGpsProvider extends Observable implements SimGpsProvide
 							bot.leftbump = true;
 						}
 					}
-
 				}
 			}
 		}
+        if (bot.rightbump || bot.leftbump) {
+            this.RobotCollisions++;
+            alreadyCounted = true;
+        }
+
 		ObstacleList list = obspoint_positions;
 		for(int i = 0; i < list.ObList.size(); i++)
 		{
@@ -285,6 +297,10 @@ public class RealisticSimGpsProvider extends Observable implements SimGpsProvide
 				}
 			}
 		}
+        if (!alreadyCounted && (bot.rightbump || bot.leftbump)) {
+            this.ObstacleCollisions++;
+            alreadyCounted = true;
+        }
 
 	}
 	
@@ -298,5 +314,13 @@ public class RealisticSimGpsProvider extends Observable implements SimGpsProvide
 			}
 		}
 	}
+
+    public long getObstacleCollisions() {
+        return this.ObstacleCollisions;
+    }
+
+    public long getRobotCollisions() {
+        return this.RobotCollisions;
+    }
 
 }

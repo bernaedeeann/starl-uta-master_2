@@ -10,8 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="StarLSim" />
     <orderEntry type="module" module-name="StarLib" />
-    <orderEntry type="module" module-name="StarLSim" />
-    <orderEntry type="module" module-name="StarLib" />
   </component>
 </module>
 

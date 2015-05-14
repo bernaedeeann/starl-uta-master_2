@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Random;
 
 import edu.illinois.mitra.starl.comms.RobotMessage;
+import edu.illinois.mitra.starl.functions.RicartAgrawalaMutualExclusion;
 import edu.illinois.mitra.starl.gvh.GlobalVarHolder;
 import edu.illinois.mitra.starl.interfaces.LogicThread;
 import edu.illinois.mitra.starl.motion.MotionParameters;
@@ -18,6 +19,8 @@ public class RaceApp extends LogicThread {
 
 	final Map<String, ItemPosition> destinations = new HashMap<String, ItemPosition>();
 	ItemPosition currentDestination;
+    RicartAgrawalaMutualExclusion mutex;
+    int numBots;
 
 	private enum Stage {
 		PICK, GO, DONE
@@ -35,6 +38,8 @@ public class RaceApp extends LogicThread {
 		for(ItemPosition i : gvh.gps.getWaypointPositions())
 			destinations.put(i.getName(), i);
 		gvh.comms.addMsgListener(this, ARRIVED_MSG);
+        mutex = new RicartAgrawalaMutualExclusion(1, gvh);
+        numBots  = gvh.id.getParticipants().size();
 	}
 
 	@Override
@@ -45,17 +50,29 @@ public class RaceApp extends LogicThread {
 				if(destinations.isEmpty()) {
 					stage = Stage.DONE;
 				} else {
-					currentDestination = getRandomElement(destinations);
+                    currentDestination = getRandomElement(destinations);
+                    mutex.requestEntry(1);
+
+                    while(!mutex.clearToEnter(1)) {
+                        sleep(100);
+                    }
+
 					gvh.plat.moat.goTo(currentDestination);
 					stage = Stage.GO;
+
+                    sleep(1000);
+                    mutex.exit(1);
+
 				}
 				break;
 			case GO:
 				if(!gvh.plat.moat.inMotion) {
 					if(currentDestination != null)
 						destinations.remove(currentDestination.getName());
-					RobotMessage inform = new RobotMessage("ALL", name, ARRIVED_MSG, currentDestination.getName());
-					gvh.comms.addOutgoingMessage(inform);
+
+                    RobotMessage inform = new RobotMessage("ALL", name, ARRIVED_MSG, currentDestination.getName());
+                    gvh.comms.addOutgoingMessage(inform);
+
 					stage = Stage.PICK;
 				}
 				break;
